@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>自行车螺丝扭力查询</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary: #27ae60;
+            --primary-dark: #219653;
+            --accent: #f39c12;
+            --light: #f5f7fa;
+            --light-gray: #eef2f7;
+            --dark: #2c3e50;
+            --gray: #7f8c8d;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            --card-radius: 12px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f7f4 0%, #e4ede9 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 70px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* 头部样式 */
+        header {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-text {
+            text-align: center;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .logo-text p {
+            font-size: 0.8rem;
+            opacity: 0.85;
+            margin-top: 3px;
+        }
+        
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-box {
+            display: flex;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            width: 100%;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 1px solid #d0d8e4;
+        }
+        
+        .search-box input {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            outline: none;
+            font-size: 0.95rem;
+            background: transparent;
+        }
+        
+        .search-box button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 18px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+        }
+        
+        .search-box button i {
+            font-size: 1rem;
+        }
+        
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+            z-index: 10;
+            overflow: hidden;
+            display: none;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--light-gray);
+            font-size: 0.9rem;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item i {
+            color: var(--gray);
+            width: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .suggestion-category {
+            font-size: 0.75rem;
+            background: var(--light-gray);
+            color: var(--gray);
+            padding: 6px 12px;
+            font-weight: 600;
+        }
+        
+        .clear-search {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        /* 分类选择器 */
+        .category-selector {
+            margin: 15px 0;
+            position: sticky;
+            top: 70px;
+            z-index: 90;
+            background: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .category-selector select {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            background: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--primary);
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2327ae60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+        }
+        
+        /* 主要内容区 */
+        .content {
+            background: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .content-header {
+            padding: 15px 20px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .current-category {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .current-category i {
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .unit-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        /* 表格样式 */
+        .table-container {
+            overflow-x: auto;
+            padding: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .torque-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 500px;
+        }
+        
+        .torque-table th {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid #e1e5e9;
+            font-size: 0.85rem;
+            position: sticky;
+            left: 0;
+        }
+        
+        .torque-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eef2f7;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .torque-table tr:nth-child(even) {
+            background-color: #fbfcfd;
+        }
+        
+        .torque-table tr:hover {
+            background-color: #f0f5ff;
+        }
+        
+        .torque-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+        
+        .note-cell {
+            color: var(--gray);
+            font-size: 0.85rem;
+            max-width: 200px;
+        }
+        
+        .spec-cell {
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            white-space: nowrap;
+        }
+        
+        /* 提示信息 */
+        .info-box {
+            background: #e8f6ef;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h3 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-box ul {
+            padding-left: 20px;
+        }
+        
+        .info-box li {
+            margin-bottom: 6px;
+            position: relative;
+            padding-left: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .info-box li::before {
+            content: "•";
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 20px 0 10px;
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 15px;
+            color: var(--gray);
+        }
+        
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #d1d8e0;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+        
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+            background: #e8f6ef;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease forwards;
+        }
+        
+        /* 加载动画 */
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid var(--accent);
+            animation: spin 1s linear infinite;
+            position: absolute;
+            right: 55px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @keyframes spin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        
+        /* 自行车图标装饰 */
+        .bike-decor {
+            text-align: center;
+            padding: 15px 0;
+            color: var(--primary);
+            opacity: 0.7;
+        }
+        
+        /* 移动端优化：小屏幕调整 */
+        @media (min-width: 768px) {
+            .bottom-nav {
+                display: none;
+            }
+            
+            .header-content {
+                flex-direction: row;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .logo {
+                justify-content: flex-start;
+            }
+            
+            .category-selector {
+                display: none;
+            }
+            
+            .container {
+                padding: 0 20px;
+                max-width: 800px;
+            }
+            
+            .bike-decor {
+                padding: 20px 0;
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .container {
+                max-width: 1000px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-bicycle"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>自行车螺丝扭力查询</h1>
+                        <p>专业维修数据参考</p>
+                    </div>
+                </div>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="搜索螺丝类型或位置...">
+                        <div class="loader" id="searchLoader"></div>
+                        <button id="searchButton"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="search-suggestions" id="searchSuggestions">
+                        <!-- 搜索建议将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="bike-decor">
+            <i class="fas fa-bicycle fa-2x"></i>
+        </div>
+        
+        <!-- 移动端分类选择器 -->
+        <div class="category-selector">
+            <select id="mobileCategorySelect">
+                <option value="handlebar">车把螺丝</option>
+                <option value="seatpost">座管螺丝</option>
+                <option value="brake">刹车系统</option>
+                <option value="derailleur">变速系统</option>
+                <option value="pedal">脚踏</option>
+                <option value="wheel">轮组</option>
+                <option value="other">其他部位</option>
+            </select>
+        </div>
+        
+        <div class="content">
+            <div class="content-header">
+                <div class="current-category">
+                    <i class="fas fa-hand-paper"></i> 车把螺丝扭力规范
+                </div>
+                <div class="unit-toggle">
+                    <span>N·m</span>
+                    <label class="switch">
+                        <input type="checkbox" id="unitToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span>kgf·cm</span>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="torque-table">
+                    <thead>
+                        <tr>
+                            <th>位置</th>
+                            <th>规格</th>
+                            <th>扭力值</th>
+                            <th>备注</th>
+                        </tr>
+                    </thead>
+                    <tbody id="torqueData">
+                        <tr class="fade-in">
+                            <td>车把固定螺丝</td>
+                            <td class="spec-cell">M5</td>
+                            <td><span class="torque-value">5-7</span> N·m</td>
+                            <td class="note-cell">分两次交叉拧紧</td>
+                        </tr>
+                        <tr class="fade-in">
+                            <td>把立盖螺丝</td>
+                            <td class="spec-cell">M6</td>
+                            <td><span class="torque-value">4-6</span> N·m</td>
+                            <td class="note-cell">先预紧再调整</td>
+                        </tr>
+                        <tr class="fade-in">
+                            <td>把立固定螺丝</td>
+                            <td class="spec-cell">M6</td>
+                            <td><span class="torque-value">5-7</span> N·m</td>
+                            <td class="note-cell">两侧交替拧紧</td>
+                        </tr>
+                        <tr class="fade-in">
+                            <td>刹车手柄螺丝</td>
+                            <td class="spec-cell">M4</td>
+                            <td><span class="torque-value">2-4</span> N·m</td>
+                            <td class="note-cell">避免影响刹车手感</td>
+                        </tr>
+                        <tr class="fade-in">
+                            <td>变速手柄螺丝</td>
+                            <td class="spec-cell">M4</td>
+                            <td><span class="torque-value">2-4</span> N·m</td>
+                            <td class="note-cell">小心拧紧</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="info-box">
+                <h3><i class="fas fa-info-circle"></i> 使用须知</h3>
+                <ul>
+                    <li>以上数据为常见值，具体请参考自行车品牌手册</li>
+                    <li>使用精确扭力扳手，避免损坏碳纤维部件</li>
+                    <li>每次骑行前检查关键螺丝扭力</li>
+                    <li>金属部件可使用少量防滑剂，碳纤维部件使用碳纤维止滑剂</li>
+                    <li>定期维护保养自行车螺丝</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="container">
+        <p>© 2023 自行车维修数据参考系统</p>
+        <p>请以自行车品牌官方手册为准</p>
+        <div class="footer-links">
+            <a href="#">关于我们</a>
+            <a href="#">帮助中心</a>
+            <a href="#">意见反馈</a>
+        </div>
+    </footer>
+    
+    <!-- 移动端底部导航 -->
+    <div class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>首页</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-search"></i>
+            <span>搜索</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-book"></i>
+            <span>手册</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-tools"></i>
+            <span>工具</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>我的</span>
+        </a>
+    </div>
+
+    <script>
+        // 自行车螺丝扭力数据
+        const torqueData = {
+            handlebar: [
+                { position: "车把固定螺丝", spec: "M5", nm: "5-7", kgfcm: "50-70", note: "分两次交叉拧紧", category: "handlebar" },
+                { position: "把立盖螺丝", spec: "M6", nm: "4-6", kgfcm: "40-60", note: "先预紧再调整", category: "handlebar" },
+                { position: "把立固定螺丝", spec: "M6", nm: "5-7", kgfcm: "50-70", note: "两侧交替拧紧", category: "handlebar" },
+                { position: "刹车手柄螺丝", spec: "M4", nm: "2-4", kgfcm: "20-40", note: "避免影响刹车手感", category: "handlebar" },
+                { position: "变速手柄螺丝", spec: "M4", nm: "2-4", kgfcm: "20-40", note: "小心拧紧", category: "handlebar" }
+            ],
+            seatpost: [
+                { position: "座管夹螺丝", spec: "M6", nm: "5-7", kgfcm: "50-70", note: "避免过度拧紧", category: "seatpost" },
+                { position: "座弓固定螺丝", spec: "M5", nm: "5-6", kgfcm: "50-60", note: "碳纤维座垫需特别注意", category: "seatpost" }
+            ],
+            brake: [
+                { position: "刹车夹器固定螺丝", spec: "M6", nm: "6-8", kgfcm: "60-80", note: "检查刹车居中", category: "brake" },
+                { position: "刹车手柄固定螺丝", spec: "M5", nm: "4-6", kgfcm: "40-60", note: "避免影响刹车手感", category: "brake" },
+                { position: "碟刹座螺丝", spec: "T25", nm: "6-8", kgfcm: "60-80", note: "使用扭力扳手", category: "brake" },
+                { position: "刹车线固定螺丝", spec: "M5", nm: "4-6", kgfcm: "40-60", note: "确保刹车线固定", category: "brake" }
+            ],
+            derailleur: [
+                { position: "后变速器固定螺丝", spec: "M10", nm: "12-14", kgfcm: "120-140", note: "注意螺纹方向", category: "derailleur" },
+                { position: "前变速器固定螺丝", spec: "M5", nm: "5-7", kgfcm: "50-70", note: "根据车架材质调整", category: "derailleur" },
+                { position: "指拨固定螺丝", spec: "M5", nm: "4-6", kgfcm: "40-60", note: "避免过紧", category: "derailleur" }
+            ],
+            pedal: [
+                { position: "脚踏安装螺丝", spec: "9/16\"", nm: "35-45", kgfcm: "350-450", note: "注意左右螺纹方向", category: "pedal" }
+            ],
+            wheel: [
+                { position: "快拆杆", spec: "5mm", nm: "5-7", kgfcm: "50-70", note: "关闭时应有适当阻力", category: "wheel" },
+                { position: "桶轴杆", spec: "6mm", nm: "10-12", kgfcm: "100-120", note: "确保车轮居中", category: "wheel" },
+                { position: "碟刹盘固定螺丝", spec: "T25", nm: "6-8", kgfcm: "60-80", note: "按交叉顺序拧紧", category: "wheel" }
+            ],
+            other: [
+                { position: "水壶架螺丝", spec: "M5", nm: "2-4", kgfcm: "20-40", note: "避免损坏车架", category: "other" },
+                { position: "码表座螺丝", spec: "M4", nm: "1.5-2", kgfcm: "15-20", note: "小心拧紧", category: "other" },
+                { position: "挡泥板固定螺丝", spec: "M5", nm: "3-4", kgfcm: "30-40", note: "定期检查", category: "other" }
+            ]
+        };
+
+        // 获取所有螺丝数据（用于搜索）
+        const allScrews = Object.values(torqueData).flat();
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 移动端分类选择器事件
+            const mobileCategorySelect = document.getElementById('mobileCategorySelect');
+            mobileCategorySelect.addEventListener('change', function() {
+                const category = this.value;
+                renderTorqueTable(category);
+                updateCategoryTitle(category);
+            });
+            
+            // 添加单位切换事件
+            const unitToggle = document.getElementById('unitToggle');
+            unitToggle.addEventListener('change', function() {
+                const category = mobileCategorySelect.value;
+                renderTorqueTable(category);
+            });
+            
+            // 搜索框输入事件
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.trim().toLowerCase();
+                if (searchTerm.length > 0) {
+                    showSearchSuggestions(searchTerm);
+                } else {
+                    document.getElementById('searchSuggestions').style.display = 'none';
+                    const category = mobileCategorySelect.value;
+                    renderTorqueTable(category);
+                }
+            });
+            
+            // 搜索按钮点击事件
+            document.getElementById('searchButton').addEventListener('click', function() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                if (searchTerm.length > 0) {
+                    performSearch(searchTerm);
+                }
+            });
+            
+            // 搜索框回车事件
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = searchInput.value.trim().toLowerCase();
+                    if (searchTerm.length > 0) {
+                        performSearch(searchTerm);
+                    }
+                }
+            });
+            
+            // 点击页面其他区域关闭搜索建议
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('searchSuggestions').style.display = 'none';
+                }
+            });
+            
+            // 初始渲染
+            renderTorqueTable('handlebar');
+        });
+
+        // 渲染扭力表格
+        function renderTorqueTable(category, filteredData = null) {
+            const tableBody = document.getElementById('torqueData');
+            tableBody.innerHTML = '';
+            
+            const data = filteredData || torqueData[category];
+            const useKgf = document.getElementById('unitToggle').checked;
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>未找到匹配的数据</h3>
+                                <p>请尝试其他搜索关键词</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.classList.add('fade-in');
+                
+                // 根据单位选择显示值
+                const torqueValue = useKgf ? 
+                    `<span class="torque-value">${item.kgfcm}</span> kgf·cm` : 
+                    `<span class="torque-value">${item.nm}</span> N·m`;
+                
+                row.innerHTML = `
+                    <td>${item.position}</td>
+                    <td class="spec-cell">${item.spec}</td>
+                    <td>${torqueValue}</td>
+                    <td class="note-cell">${item.note}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 更新类别标题
+        function updateCategoryTitle(category) {
+            const titles = {
+                handlebar: "车把螺丝扭力规范",
+                seatpost: "座管螺丝扭力规范",
+                brake: "刹车系统螺丝扭力规范",
+                derailleur: "变速系统螺丝扭力规范",
+                pedal: "脚踏螺丝扭力规范",
+                wheel: "轮组螺丝扭力规范",
+                other: "其他螺丝扭力规范"
+            };
+            
+            document.querySelector('.current-category').innerHTML = 
+                `<i class="fas fa-${getCategoryIcon(category)}"></i> ${titles[category]}`;
+        }
+        
+        // 获取类别图标
+        function getCategoryIcon(category) {
+            const icons = {
+                handlebar: 'hand-paper',
+                seatpost: 'chair',
+                brake: 'tachometer-alt',
+                derailleur: 'cogs',
+                pedal: 'shoe-prints',
+                wheel: 'cog',
+                other: 'tools'
+            };
+            return icons[category] || 'tools';
+        }
+        
+        // 显示搜索建议
+        function showSearchSuggestions(term) {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            suggestionsContainer.innerHTML = '';
+            
+            // 在所有螺丝数据中查找匹配项
+            const matches = allScrews.filter(item => 
+                item.position.toLowerCase().includes(term) || 
+                item.spec.toLowerCase().includes(term) || 
+                item.note.toLowerCase().includes(term)
+            );
+            
+            if (matches.length === 0) {
+                suggestionsContainer.innerHTML = `
+                    <div class="suggestion-item">
+                        <i class="fas fa-search"></i>
+                        <span>未找到匹配项</span>
+                    </div>
+                `;
+                suggestionsContainer.style.display = 'block';
+                return;
+            }
+            
+            // 添加匹配建议
+            matches.slice(0, 5).forEach(item => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item slide-in';
+                suggestionItem.innerHTML = `
+                    <i class="fas fa-${getCategoryIcon(item.category)}"></i>
+                    <div>
+                        <div>${item.position}</div>
+                        <div style="font-size: 0.8rem; color: var(--gray); margin-top: 3px;">
+                            ${item.spec} · ${item.nm} N·m
+                        </div>
+                    </div>
+                `;
+                
+                suggestionItem.addEventListener('click', function() {
+                    document.getElementById('searchInput').value = item.position;
+                    performSearch(item.position);
+                });
+                
+                suggestionsContainer.appendChild(suggestionItem);
+            });
+            
+            suggestionsContainer.style.display = 'block';
+        }
+        
+        // 执行搜索
+        function performSearch(term) {
+            // 显示加载动画
+            const loader = document.getElementById('searchLoader');
+            loader.style.display = 'block';
+            
+            // 模拟搜索延迟
+            setTimeout(() => {
+                loader.style.display = 'none';
+                
+                // 隐藏搜索建议
+                document.getElementById('searchSuggestions').style.display = 'none';
+                
+                // 在所有螺丝数据中查找匹配项
+                const matches = allScrews.filter(item => 
+                    item.position.toLowerCase().includes(term) || 
+                    item.spec.toLowerCase().includes(term) || 
+                    item.note.toLowerCase().includes(term)
+                );
+                
+                // 如果找到匹配项，更新表格
+                if (matches.length > 0) {
+                    // 更新类别标题
+                    document.querySelector('.current-category').innerHTML = 
+                        `<i class="fas fa-search"></i> 搜索结果: "${term}"`;
+                    
+                    // 渲染搜索结果
+                    renderTorqueTable(null, matches);
+                } else {
+                    // 显示空状态
+                    const tableBody = document.getElementById('torqueData');
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="fas fa-search"></i>
+                                    <h3>未找到匹配的数据</h3>
+                                    <p>请尝试其他搜索关键词</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>
