@@ -6,6 +6,18 @@
     <title>自行车螺丝扭力查询</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* 添加高亮动画效果 */
+        @keyframes highlight {
+            0% { background-color: #fff9e6; }
+            50% { background-color: #ffec8d; }
+            100% { background-color: #fff9e6; }
+        }
+
+        .highlight-row {
+            animation: highlight 2s ease;
+        }
+        
+        /* 其余CSS保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -863,6 +875,10 @@
                 const row = document.createElement('tr');
                 row.classList.add('fade-in');
                 
+                // 添加数据属性以便搜索高亮
+                row.setAttribute('data-position', item.position);
+                row.setAttribute('data-spec', item.spec);
+                
                 // 根据单位选择显示值
                 const torqueValue = useKgf ? 
                     `<span class="torque-value">${item.kgfcm}</span> kgf·cm` : 
@@ -948,7 +964,7 @@
                 
                 suggestionItem.addEventListener('click', function() {
                     document.getElementById('searchInput').value = item.position;
-                    performSearch(item.position);
+                    performSearch(item.position, item);
                 });
                 
                 suggestionsContainer.appendChild(suggestionItem);
@@ -958,7 +974,7 @@
         }
         
         // 执行搜索
-        function performSearch(term) {
+        function performSearch(term, highlightItem = null) {
             // 显示加载动画
             const loader = document.getElementById('searchLoader');
             loader.style.display = 'block';
@@ -985,6 +1001,13 @@
                     
                     // 渲染搜索结果
                     renderTorqueTable(null, matches);
+                    
+                    // 如果有指定要高亮的项目，执行高亮效果
+                    if (highlightItem) {
+                        setTimeout(() => {
+                            highlightTableRow(highlightItem.position, highlightItem.spec);
+                        }, 100);
+                    }
                 } else {
                     // 显示空状态
                     const tableBody = document.getElementById('torqueData');
@@ -1001,6 +1024,31 @@
                     `;
                 }
             }, 300);
+        }
+        
+        // 高亮表格行
+        function highlightTableRow(position, spec) {
+            // 找到所有匹配的行
+            const rows = document.querySelectorAll('tr[data-position]');
+            
+            for (const row of rows) {
+                if (row.getAttribute('data-position') === position && 
+                    row.getAttribute('data-spec') === spec) {
+                    
+                    // 添加高亮效果
+                    row.classList.add('highlight-row');
+                    
+                    // 滚动到该行
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 2秒后移除高亮效果
+                    setTimeout(() => {
+                        row.classList.remove('highlight-row');
+                    }, 2000);
+                    
+                    break;
+                }
+            }
         }
     </script>
 </body>
